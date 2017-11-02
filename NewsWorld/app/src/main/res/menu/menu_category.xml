@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity">
+
+    <item
+        android:id="@+id/action_World"
+        android:title="World"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_Politics"
+        android:title="Politics"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_Technology"
+        android:title="Technology"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_Refresh"
+        android:icon="@drawable/replay"
+        android:title="Refresh"
+        app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/action_Home"
+        android:icon="@drawable/home"
+        android:title="Home"
+        app:showAsAction="always"/>
+
+
+
+
+</menu>

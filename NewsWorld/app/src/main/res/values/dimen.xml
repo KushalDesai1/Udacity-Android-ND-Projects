@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="headline_font_size">20sp</dimen>
+    <dimen name="contributor_font_size">12sp</dimen>
+    <dimen name="publishDate_font_size">12sp</dimen>
+    <dimen name="content_font_size">14sp</dimen>
+</resources>

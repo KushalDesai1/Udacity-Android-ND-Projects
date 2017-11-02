@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="16dp"
+    android:background="@color/colorPrimaryDark">
+
+    <ImageView
+        android:id="@+id/news_Image_Thumb"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginRight="5dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/newssource_background" />
+
+    <TextView
+        android:id="@+id/news_Headline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/news_Image_Thumb"
+        android:textColor="@color/colorFont"
+        android:textSize="@dimen/headline_font_size"
+        android:textStyle="bold"
+        tools:text="Headline" />
+
+    <TextView
+        android:id="@+id/news_Contributor"
+        android:layout_width="160dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/news_Headline"
+        android:layout_toRightOf="@id/news_Image_Thumb"
+        android:textColor="@color/colorFont"
+        android:textSize="@dimen/contributor_font_size"
+        tools:text="Contributor" />
+
+    <TextView
+        android:id="@+id/news_PublishDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/news_Contributor"
+        android:layout_toRightOf="@id/news_Image_Thumb"
+        android:textColor="@color/colorFont"
+        android:textSize="@dimen/publishDate_font_size"
+        tools:text="Publish-Date" />
+
+    <TextView
+        android:id="@+id/news_Section"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/news_PublishDate"
+        android:layout_toRightOf="@id/news_Image_Thumb"
+        android:layout_marginRight="5dp"
+        android:textColor="@color/colorFont"
+        android:textSize="@dimen/contributor_font_size"
+        tools:text="Section" />
+
+    <TextView
+        android:id="@+id/news_Content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/news_Section"
+        android:layout_marginTop="2dp"
+        android:layout_toRightOf="@id/news_Image_Thumb"
+        android:lines="1"
+        android:textColor="@color/colorFont"
+        android:textSize="@dimen/content_font_size"
+        tools:text="Content" />
+
+</RelativeLayout>
