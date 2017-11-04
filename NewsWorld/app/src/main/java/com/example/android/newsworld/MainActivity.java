@@ -2,6 +2,7 @@ package com.example.android.newsworld;
 
 import android.app.LoaderManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.Loader;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -18,6 +19,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -63,6 +65,22 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         listOfNews = new ArrayList<>();
         recycleAdapter = new NewsAdapter(listOfNews);
         recyclerView.setAdapter(recycleAdapter);
+
+        recycleAdapter.setOnItemClickListener(new NewsAdapter.CustomItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position) {
+
+                TextView txt_URL = (TextView) v.findViewById(R.id.news_URL);
+
+                String newsUrl = txt_URL.getText().toString().trim();
+
+                Uri newsUri = Uri.parse(newsUrl);
+
+                Intent websiteIntent = new Intent(Intent.ACTION_VIEW, newsUri);
+                startActivity(websiteIntent);
+
+            }
+        });
 
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = cm.getActiveNetworkInfo();

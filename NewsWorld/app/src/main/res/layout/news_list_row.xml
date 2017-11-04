@@ -15,6 +15,16 @@
         android:src="@drawable/newssource_background" />
 
     <TextView
+        android:id="@+id/news_URL"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/news_Image_Thumb"
+        android:textColor="@color/colorFont"
+        android:textSize="@dimen/headline_font_size"
+        tools:text="URL"
+        android:visibility="invisible"/>
+
+    <TextView
         android:id="@+id/news_Headline"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
