@@ -8,7 +8,7 @@ import android.provider.BaseColumns;
  * Created by kushaldesai on 16/11/17.
  */
 
-public class ProductContract {
+public final class ProductContract {
 
     public static final String CONTENT_AUTHORITY = "com.example.android.varietystoreinventory";
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
@@ -39,7 +39,6 @@ public class ProductContract {
         public static final String COLUMN_PRODUCT_IMAGE_PATH = "productImagePath";
         public static final String COLUMN_PRODUCT_DEALER = "productDealer";
         public static final String COLUMN_PRODUCT_DEALER_EMAIL = "productDealerEmail";
-
 
     }
 }

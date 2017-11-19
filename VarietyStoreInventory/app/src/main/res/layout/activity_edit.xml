@@ -22,6 +22,7 @@
             android:id="@+id/edit_ProductPrice"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inputType="number"
             android:hint="Price" />
 
         <LinearLayout
@@ -62,15 +63,13 @@
                 android:text="-"
                 android:textColor="@color/colorWhite"
                 android:background="@color/colorPrimary"/>
-
-
         </LinearLayout>
-
 
         <EditText
             android:id="@+id/edit_ProductDealer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inputType="textPersonName"
             android:hint="Dealer" />
 
         <EditText

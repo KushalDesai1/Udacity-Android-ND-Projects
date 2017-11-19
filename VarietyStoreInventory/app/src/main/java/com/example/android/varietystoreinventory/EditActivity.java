@@ -38,10 +38,16 @@ public class EditActivity extends AppCompatActivity implements
     private static final int CURRENT_PRODUCT_LOADER_ID = 1;
 
     static final int IMAGE_ID = 10;
+    public int b1 = 0;
+    public int b2 = 0;
+    public int b3 = 0;
+    public int b4 = 0;
+    public int b5 = 0;
 
     private Uri mCurrentProductUri;
     Uri imageUri;
     private boolean mProductHasChanged = false;
+    private boolean mProductImageChanged = false;
 
     private EditText pNameEditText, pPriceEditText, pQtyEditText, pDealerEditText, pEmailEditText, pImagePathEditText;
     private Button pBrowseButton;
@@ -160,6 +166,7 @@ public class EditActivity extends AppCompatActivity implements
         else
         {
             setTitle("Edit a Product");
+            mProductImageChanged = true;
             getLoaderManager().initLoader(CURRENT_PRODUCT_LOADER_ID, null, this);
         }
 
@@ -172,6 +179,8 @@ public class EditActivity extends AppCompatActivity implements
         {
             imageUri = data.getData();
             pProductImage.setImageURI(Uri.parse(String.valueOf(imageUri)));
+
+            mProductImageChanged = true;
 
             String wholeID = DocumentsContract.getDocumentId(Uri.parse(String.valueOf(imageUri)));
 
@@ -197,6 +206,10 @@ public class EditActivity extends AppCompatActivity implements
             cursor.close();
 
         }
+        else
+        {
+            mProductImageChanged = false;
+        }
 
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -216,7 +229,37 @@ public class EditActivity extends AppCompatActivity implements
             imagePathString = pImagePathEditText.getText().toString().toString();
         }
 
-        if (mCurrentProductUri == null && strName.isEmpty() && strPrice.isEmpty() && strQty.isEmpty() && strEmail.isEmpty() && strDealer.isEmpty())
+        if (TextUtils.isEmpty(strName))
+        {
+            Log.i("B1", "1");
+            b1 = 1;
+        }
+
+        if (TextUtils.isEmpty(strPrice))
+        {
+            Log.i("B2", "1");
+            b2 = 1;
+        }
+
+        if (TextUtils.isEmpty(strQty))
+        {
+            Log.i("B3", "1");
+            b3 = 1;
+        }
+
+        if (TextUtils.isEmpty(strDealer))
+        {
+            Log.i("B4", "1");
+            b4 = 1;
+        }
+
+        if (TextUtils.isEmpty(strEmail))
+        {
+            Log.i("B5", "1");
+            b5 = 1;
+        }
+
+        if (mCurrentProductUri == null && b1 == 1 && b2 == 1 && b3 == 1 && b4 == 1 && b5 == 1)
         {
             return;
         }
@@ -278,15 +321,28 @@ public class EditActivity extends AppCompatActivity implements
 
     private Boolean checkForErrors()
     {
-        int b1 = 0;
-        int b2 = 0;
-        int b3 = 0;
+        b1 = 0;
+        b2 = 0;
+        b3 = 0;
+        b4 = 0;
+        b5 = 0;
 
         String nameString = pNameEditText.getText().toString().trim();
         String priceString = pPriceEditText.getText().toString().trim();
         String qtyString = pQtyEditText.getText().toString().trim();
+        String dealerString = pDealerEditText.getText().toString().trim();
+        String dealerEmail = pEmailEditText.getText().toString().trim();
 
-        if (TextUtils.isEmpty(nameString))
+
+        if (!pNameEditText.getText().toString().equals(""))
+        {
+            if (!nameString.matches("^[a-zA-Z\\s]*$"))
+            {
+                pNameEditText.setError("Invalid Product Name");
+                b1 = 1;
+            }
+        }
+        else
         {
             pNameEditText.setError("Enter Product Name");
             b1 = 1;
@@ -300,11 +356,38 @@ public class EditActivity extends AppCompatActivity implements
 
         if (TextUtils.isEmpty(qtyString))
         {
-            pQtyEditText.setError("Enter Product Qquantity");
+            pQtyEditText.setError("Enter Product Quantity");
             b3 = 1;
         }
 
-        if (b1 == 1 || b2 == 1 || b3 == 1)
+        if (!pDealerEditText.getText().toString().equals(""))
+        {
+            if (!dealerString.matches("^[a-zA-Z\\s]*$"))
+            {
+                pDealerEditText.setError("Invalid Dealer Name");
+                b4 = 1;
+            }
+        }
+        else
+        {
+            pDealerEditText.setError("Enter Dealer Name");
+            b4 = 1;
+        }
+
+        if (TextUtils.isEmpty(dealerEmail))
+        {
+            pEmailEditText.setError("Enter Dealer Email");
+            b5 = 1;
+        }
+
+
+        if (mProductImageChanged == false)
+        {
+            Toast.makeText(this, "Please select image\nfor the product", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        if (b1 == 1 || b2 == 1 || b3 == 1 || b4 == 1 || b5 == 1)
             return false;
         else
             return true;
@@ -337,8 +420,11 @@ public class EditActivity extends AppCompatActivity implements
         switch (item.getItemId())
         {
             case R.id.action_save_product:
-                if (checkForErrors()) {
+                if (checkForErrors())
+                {
+                    Log.i("Check for errors:","DONE");
                     saveProduct();
+                    Log.i("SAVE PRODUCT:","DONE");
                     finish();
                 }
                 return true;
@@ -512,7 +598,6 @@ public class EditActivity extends AppCompatActivity implements
             int qtyColumnIndex = cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_QTY);
             int dealerColumnIndex = cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_DEALER);
             int emailColumnIndex = cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_DEALER_EMAIL);
-            int imageColumnIndex = cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_IMAGE);
             int imagePathColumnIndex = cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_IMAGE_PATH);
 
             String name = cursor.getString(nameColumnIndex);
@@ -528,16 +613,16 @@ public class EditActivity extends AppCompatActivity implements
             pDealerEditText.setText(dealer);
             pEmailEditText.setText(email);
 
-            String strImageURI = cursor.getString(imageColumnIndex);
+            String strImageURI = cursor.getString(cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_IMAGE));
             if (strImageURI.startsWith("content://com.android.providers.media.documents/document/image"))
             {
-                Log.i("IMAGE DATA 1","FLEW AWAY");
+                Log.i("IMAGE DATA 1","FLEW AWAY " + strImageURI);
                 pProductImage.setImageURI(Uri.parse(strImageURI));
                 pImagePathEditText.setText(imagePath);
             }
             else
             {
-                Log.i("IMAGE DATA 2","FLEW AWAY");
+                Log.i("IMAGE DATA 2","FLEW AWAY " + strImageURI);
                 pProductImage.setImageResource(R.drawable.demo_product);
                 pImagePathEditText.setText("");
 
