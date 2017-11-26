@@ -15,9 +15,10 @@
         <ImageView
             android:id="@+id/list_imgThumb"
             android:layout_width="70dp"
-            android:layout_height="wrap_content"
+            android:layout_height="70dp"
             android:layout_gravity="center"
             android:adjustViewBounds="true"
+            android:src="@drawable/demo_product"
             android:background="@color/colorPrimary"/>
 
         <LinearLayout

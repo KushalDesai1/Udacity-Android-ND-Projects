@@ -85,26 +85,13 @@
             android:layout_marginTop="10dp"
             android:orientation="horizontal">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Add Image:"
-                android:textSize="24sp"
-                android:textColor="@color/colorBlack"/>
-
-            <EditText
-                android:id="@+id/edit_ImgPath"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Image Path"/>
-
         </LinearLayout>
 
         <Button
             android:id="@+id/btn_Browse"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="BROWSE"
+            android:text="BROWSE IMAGE"
             android:textSize="24sp"
             android:textColor="@color/colorWhite"
             android:background="@color/colorPrimary"/>
@@ -114,8 +101,9 @@
             android:src="@drawable/demo_product"
             android:layout_marginTop="10dp"
             android:scaleType="centerCrop"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_gravity="center"
+            android:layout_width="300dp"
+            android:layout_height="300dp" />
 
     </LinearLayout>
 

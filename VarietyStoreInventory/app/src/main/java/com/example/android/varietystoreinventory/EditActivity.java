@@ -11,8 +11,11 @@ import android.content.Loader;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.ContextCompat;
@@ -30,30 +33,41 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.example.android.varietystoreinventory.ProductContract.ProductEntry;
+
+import java.io.File;
+import java.net.URI;
 
 public class EditActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor> {
 
-    private static final int CURRENT_PRODUCT_LOADER_ID = 1;
+    private static final String LOG_TAG = EditActivity.class.getSimpleName();
+    public static final int PICK_PHOTO_REQUEST = 20;
+    public static final int EXTERNAL_STORAGE_REQUEST_PERMISSION_CODE = 21;
 
-    static final int IMAGE_ID = 10;
+    //Identifier for inventory data loader
+    private static final int CURRENT_PRODUCT_LOADER_ID = 0;
+
     public int b1 = 0;
     public int b2 = 0;
     public int b3 = 0;
     public int b4 = 0;
     public int b5 = 0;
+    private String mCurrentPhotoUri = "no images";
 
     private Uri mCurrentProductUri;
-    Uri imageUri;
-    private boolean mProductHasChanged = false;
-    private boolean mProductImageChanged = false;
 
-    private EditText pNameEditText, pPriceEditText, pQtyEditText, pDealerEditText, pEmailEditText, pImagePathEditText;
+    //Validation variables
+    private boolean mProductHasChanged = false;
+
+    private EditText pNameEditText;
+    private EditText pPriceEditText;
+    private EditText pQtyEditText;
+    private EditText pDealerEditText;
+    private EditText pEmailEditText;
     private Button pBrowseButton;
     private ImageView pProductImage;
-
-    public String filepath = "";
 
     private View.OnTouchListener mTouchListener = new View.OnTouchListener() {
         @Override
@@ -71,20 +85,6 @@ public class EditActivity extends AppCompatActivity implements
         Intent intent = getIntent();
         mCurrentProductUri = intent.getData();
 
-        if (ContextCompat.checkSelfPermission(EditActivity.this,
-                Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED)
-        {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(EditActivity.this,
-                    Manifest.permission.READ_EXTERNAL_STORAGE))
-            {
-
-            }
-            else
-            {
-                ActivityCompat.requestPermissions(EditActivity.this,
-                        new String[] {Manifest.permission.READ_EXTERNAL_STORAGE},0);
-            }
-        }
 
         pNameEditText = (EditText) findViewById(R.id.edit_ProductName);
         pPriceEditText = (EditText) findViewById(R.id.edit_ProductPrice);
@@ -92,7 +92,6 @@ public class EditActivity extends AppCompatActivity implements
         pDealerEditText = (EditText) findViewById(R.id.edit_ProductDealer);
         pEmailEditText = (EditText) findViewById(R.id.edit_ProductDealerEmail);
         pProductImage = (ImageView) findViewById(R.id.edit_productImage);
-        pImagePathEditText = (EditText) findViewById(R.id.edit_ImgPath);
         pBrowseButton = (Button) findViewById(R.id.btn_Browse);
 
         pNameEditText.setOnTouchListener(mTouchListener);
@@ -106,12 +105,20 @@ public class EditActivity extends AppCompatActivity implements
             @Override
             public void onClick(View view) {
 
-                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setType("image/*");
-                if (intent.resolveActivity(getPackageManager()) != null)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
                 {
-                    startActivityForResult(intent, IMAGE_ID);
+                    if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
+                    {
+                        invokeGetPhoto();
+                    }
+                    else
+                    {
+                        String[] permissionRequest = {Manifest.permission.READ_EXTERNAL_STORAGE};
+                        requestPermissions(permissionRequest, EXTERNAL_STORAGE_REQUEST_PERMISSION_CODE);
+                    }
+                }
+                else {
+                    invokeGetPhoto();
                 }
             }
         });
@@ -166,52 +173,63 @@ public class EditActivity extends AppCompatActivity implements
         else
         {
             setTitle("Edit a Product");
-            mProductImageChanged = true;
             getLoaderManager().initLoader(CURRENT_PRODUCT_LOADER_ID, null, this);
         }
 
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        if (requestCode == IMAGE_ID && resultCode == RESULT_OK)
+        if (requestCode == EXTERNAL_STORAGE_REQUEST_PERMISSION_CODE &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED)
         {
-            imageUri = data.getData();
-            pProductImage.setImageURI(Uri.parse(String.valueOf(imageUri)));
-
-            mProductImageChanged = true;
-
-            String wholeID = DocumentsContract.getDocumentId(Uri.parse(String.valueOf(imageUri)));
-
-            String id = wholeID.split(":")[1];
-
-            String[] column = {MediaStore.Images.Media.DATA};
-
-            String sel = MediaStore.Images.Media._ID + "=?";
-
-            Cursor cursor = getContentResolver().
-                    query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, column, sel,
-                            new String[]{id}, null);
-
-            filepath = "";
-            int columnIndex = cursor.getColumnIndex(column[0]);
-
-            if (cursor.moveToFirst())
-            {
-                filepath = cursor.getString(columnIndex);
-            }
-
-            pImagePathEditText.setText(filepath);
-            cursor.close();
-
+            //Grren signal from user's side
+            invokeGetPhoto();
         }
         else
         {
-            mProductImageChanged = false;
+            Toast.makeText(this, "Need permissions to select a photo of the product", Toast.LENGTH_SHORT).show();
         }
+    }
 
-        super.onActivityResult(requestCode, resultCode, data);
+    private void invokeGetPhoto()
+    {
+        //invoke image gallery or photos using an intent
+        Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+
+        //where to find the data
+        File pictureDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        String pictureDirectoryPath = pictureDirectory.getPath();
+
+        //finally, get a URI representation
+        Uri data = Uri.parse(pictureDirectoryPath);
+
+        //set the data and type. Get all image types
+        photoPickerIntent.setDataAndType(data, "image/*");
+
+        //we will invoke this activity and get something back from it.
+        startActivityForResult(photoPickerIntent, PICK_PHOTO_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == PICK_PHOTO_REQUEST && resultCode == RESULT_OK)
+        {
+            if (data != null) {
+                Uri mProductPhotoUri = data.getData();
+                mCurrentPhotoUri = mProductPhotoUri.toString();
+                Log.d(LOG_TAG, "Selected Images " + mProductPhotoUri);
+
+                Glide.with(this).load(mProductPhotoUri)
+                        .placeholder(R.drawable.demo_product)
+                        .crossFade()
+                        .fitCenter()
+                        .into(pProductImage);
+            }
+        }
     }
 
     private void saveProduct()
@@ -223,11 +241,7 @@ public class EditActivity extends AppCompatActivity implements
         String strEmail = pEmailEditText.getText().toString().trim();
         String imagePathString = "";
         String imageUriString = "";
-        if (imageUri != null)
-        {
-            imageUriString = imageUri.toString();
-            imagePathString = pImagePathEditText.getText().toString().toString();
-        }
+
 
         if (TextUtils.isEmpty(strName))
         {
@@ -264,10 +278,7 @@ public class EditActivity extends AppCompatActivity implements
             return;
         }
 
-        ContentValues values = new ContentValues();
-        values.put(ProductEntry.COLUMN_PRODUCT_NAME, strName);
-        values.put(ProductEntry.COLUMN_PRODUCT_DEALER, strDealer);
-        values.put(ProductEntry.COLUMN_PRODUCT_DEALER_EMAIL, strEmail);
+
 
         //If price or quantity is not provided, use 0 by default.
         int quantity = 0;
@@ -283,10 +294,13 @@ public class EditActivity extends AppCompatActivity implements
             price = Integer.parseInt(strPrice);
         }
 
+        ContentValues values = new ContentValues();
+        values.put(ProductEntry.COLUMN_PRODUCT_NAME, strName);
+        values.put(ProductEntry.COLUMN_PRODUCT_DEALER, strDealer);
+        values.put(ProductEntry.COLUMN_PRODUCT_DEALER_EMAIL, strEmail);
         values.put(ProductEntry.COLUMN_PRODUCT_PRICE, price);
         values.put(ProductEntry.COLUMN_PRODUCT_QTY, quantity);
-        values.put(ProductEntry.COLUMN_PRODUCT_IMAGE, imageUriString);
-        values.put(ProductEntry.COLUMN_PRODUCT_IMAGE_PATH, imagePathString);
+        values.put(ProductEntry.COLUMN_PRODUCT_IMAGE, mCurrentPhotoUri);
 
         if (mCurrentProductUri == null)
         {
@@ -380,12 +394,6 @@ public class EditActivity extends AppCompatActivity implements
             b5 = 1;
         }
 
-
-        if (mProductImageChanged == false)
-        {
-            Toast.makeText(this, "Please select image\nfor the product", Toast.LENGTH_SHORT).show();
-            return false;
-        }
 
         if (b1 == 1 || b2 == 1 || b3 == 1 || b4 == 1 || b5 == 1)
             return false;
@@ -572,8 +580,7 @@ public class EditActivity extends AppCompatActivity implements
                 ProductEntry.COLUMN_PRODUCT_QTY,
                 ProductEntry.COLUMN_PRODUCT_DEALER,
                 ProductEntry.COLUMN_PRODUCT_DEALER_EMAIL,
-                ProductEntry.COLUMN_PRODUCT_IMAGE,
-                ProductEntry.COLUMN_PRODUCT_IMAGE_PATH};
+                ProductEntry.COLUMN_PRODUCT_IMAGE};
 
         return new CursorLoader(this,
                 mCurrentProductUri,
@@ -598,14 +605,15 @@ public class EditActivity extends AppCompatActivity implements
             int qtyColumnIndex = cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_QTY);
             int dealerColumnIndex = cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_DEALER);
             int emailColumnIndex = cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_DEALER_EMAIL);
-            int imagePathColumnIndex = cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_IMAGE_PATH);
+            int imgColumnIndex = cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_IMAGE);
 
             String name = cursor.getString(nameColumnIndex);
             int price = cursor.getInt(priceCoulmnindex);
             int qty = cursor.getInt(qtyColumnIndex);
             String dealer = cursor.getString(dealerColumnIndex);
             String email = cursor.getString(emailColumnIndex);
-            String imagePath = cursor.getString(imagePathColumnIndex);
+            String image = cursor.getString(imgColumnIndex);
+            mCurrentPhotoUri = cursor.getString(imgColumnIndex);
 
             pNameEditText.setText(name);
             pPriceEditText.setText(String.valueOf(price));
@@ -613,20 +621,12 @@ public class EditActivity extends AppCompatActivity implements
             pDealerEditText.setText(dealer);
             pEmailEditText.setText(email);
 
-            String strImageURI = cursor.getString(cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_IMAGE));
-            if (strImageURI.startsWith("content://com.android.providers.media.documents/document/image"))
-            {
-                Log.i("IMAGE DATA 1","FLEW AWAY " + strImageURI);
-                pProductImage.setImageURI(Uri.parse(strImageURI));
-                pImagePathEditText.setText(imagePath);
-            }
-            else
-            {
-                Log.i("IMAGE DATA 2","FLEW AWAY " + strImageURI);
-                pProductImage.setImageResource(R.drawable.demo_product);
-                pImagePathEditText.setText("");
-
-            }
+            Glide.with(this).load(mCurrentPhotoUri)
+                    .placeholder(R.drawable.demo_product)
+                    .error(R.drawable.demo_product)
+                    .crossFade()
+                    .fitCenter()
+                    .into(pProductImage);
         }
     }
 
@@ -638,6 +638,5 @@ public class EditActivity extends AppCompatActivity implements
         pQtyEditText.setText("");
         pDealerEditText.setText("");
         pEmailEditText.setText("");
-        pImagePathEditText.setText("");
     }
 }

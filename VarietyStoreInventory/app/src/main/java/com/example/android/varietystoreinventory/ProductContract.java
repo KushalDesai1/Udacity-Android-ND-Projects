@@ -36,7 +36,7 @@ public final class ProductContract {
         public static final String COLUMN_PRODUCT_QTY = "productQuantity";
         public static final String COLUMN_PRODUCT_PRICE = "productPrice";
         public static final String COLUMN_PRODUCT_IMAGE = "productImage";
-        public static final String COLUMN_PRODUCT_IMAGE_PATH = "productImagePath";
+//        public static final String COLUMN_PRODUCT_IMAGE_PATH = "productImagePath";
         public static final String COLUMN_PRODUCT_DEALER = "productDealer";
         public static final String COLUMN_PRODUCT_DEALER_EMAIL = "productDealerEmail";
 

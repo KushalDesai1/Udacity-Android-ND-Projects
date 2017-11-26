@@ -33,7 +33,8 @@ public class ProductProvider extends ContentProvider {
         sUriMatcher.addURI(ProductContract.CONTENT_AUTHORITY, ProductContract.PATH_PRODUCTS + "/#", PRODUCT_ID);
     }
 
-    ProductDBHelper productDBHelper;
+    /** Database helper object */
+    private ProductDBHelper productDBHelper;
 
     @Override
     public boolean onCreate() {
@@ -45,7 +46,10 @@ public class ProductProvider extends ContentProvider {
 
     @Nullable
     @Override
-    public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs,
+    public Cursor query(@NonNull Uri uri,
+                        @Nullable String[] projection,
+                        @Nullable String selection,
+                        @Nullable String[] selectionArgs,
                         @Nullable String sortOrder) {
 
         SQLiteDatabase database = productDBHelper.getReadableDatabase();
@@ -56,12 +60,26 @@ public class ProductProvider extends ContentProvider {
         switch (match)
         {
             case PRODUCT:
-                cursor = database.query(ProductEntry.TABLE_NAME, projection, selection, selectionArgs, null, null,sortOrder);
+                cursor = database.query(ProductEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
                 break;
+
             case PRODUCT_ID:
                 selection = ProductEntry._ID + "=?";
                 selectionArgs = new String[] {String.valueOf(ContentUris.parseId(uri))};
-                cursor = database.query(ProductEntry.TABLE_NAME, projection, selection, selectionArgs, null, null,sortOrder);
+
+                cursor = database.query(ProductEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
                 break;
                 default:
                     throw new IllegalArgumentException("Unable to query on unknown URI " + uri);
@@ -93,7 +111,14 @@ public class ProductProvider extends ContentProvider {
         }
 
         Integer price = values.getAsInteger(ProductEntry.COLUMN_PRODUCT_PRICE);
-        if (price == null)
+        if (price != null)
+        {
+            if (price < 0)
+            {
+                throw new IllegalArgumentException("Product requires valid price");
+            }
+        }
+        else
         {
             throw new IllegalArgumentException("Product price is required");
         }
@@ -115,6 +140,12 @@ public class ProductProvider extends ContentProvider {
         {
             throw new IllegalArgumentException("Dealer email is required");
         }
+
+        Log.d("NAME: ", name);
+        Log.d("PRICE: ", ""+price);
+        Log.d("QUANTITY: ", ""+quantity);
+        Log.d("DEALER NAME: ", dealerName);
+        Log.d("DEALER EMAIL: ", dealerEmail);
 
         //Get writable database
         SQLiteDatabase database = productDBHelper.getWritableDatabase();
@@ -191,7 +222,10 @@ public class ProductProvider extends ContentProvider {
 
         SQLiteDatabase database = productDBHelper.getWritableDatabase();
 
-        int rowsUpdated = database.update(ProductEntry.TABLE_NAME, values, selection, selectionArgs);
+        int rowsUpdated = database.update(ProductEntry.TABLE_NAME,
+                values,
+                selection,
+                selectionArgs);
 
         if (rowsUpdated != 0)
         {
@@ -212,12 +246,17 @@ public class ProductProvider extends ContentProvider {
         switch (match)
         {
             case PRODUCT:
-                rowsDeleted = database.delete(ProductEntry.TABLE_NAME, selection, selectionArgs);
+                rowsDeleted = database.delete(ProductEntry.TABLE_NAME,
+                        selection,
+                        selectionArgs);
                 break;
             case PRODUCT_ID:
                 selection = ProductEntry._ID + "=?";
                 selectionArgs = new String[] {String.valueOf(ContentUris.parseId(uri))};
-                rowsDeleted = database.delete(ProductEntry.TABLE_NAME, selection, selectionArgs);
+
+                rowsDeleted = database.delete(ProductEntry.TABLE_NAME,
+                        selection,
+                        selectionArgs);
                 break;
             default:
                 throw new IllegalArgumentException("Delete is not supported for " + uri);

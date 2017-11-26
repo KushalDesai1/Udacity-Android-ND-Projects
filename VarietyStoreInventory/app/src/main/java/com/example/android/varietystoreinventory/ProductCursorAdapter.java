@@ -15,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.example.android.varietystoreinventory.ProductContract.ProductEntry;
 
 /**
@@ -22,6 +23,8 @@ import com.example.android.varietystoreinventory.ProductContract.ProductEntry;
  */
 
 public class ProductCursorAdapter extends CursorAdapter {
+
+    private static final String LOG_TAG = ProductCursorAdapter.class.getSimpleName();
 
     public ProductCursorAdapter(Context context, Cursor c) {
         super(context, c, 0);
@@ -44,22 +47,29 @@ public class ProductCursorAdapter extends CursorAdapter {
         int nameColumnindex = cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_NAME);
         int qtyColumnIndex = cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_QTY);
         int priceColumnIndex = cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_PRICE);
-        int idColumnIndex = cursor.getColumnIndex(ProductEntry._ID);
+        int imageColumnIndex = cursor.getColumnIndex(ProductEntry.COLUMN_PRODUCT_IMAGE);
 
-        String name = cursor.getString(nameColumnindex);
+        int productID = cursor.getInt(cursor.getColumnIndex(ProductEntry._ID));
+        final String name = cursor.getString(nameColumnindex);
         final String qty = cursor.getString(qtyColumnIndex);
         String price = cursor.getString(priceColumnIndex);
-        final String productID = cursor.getString(idColumnIndex);
-        String productImageUri = cursor.getString(cursor.getColumnIndexOrThrow(ProductEntry.COLUMN_PRODUCT_IMAGE));
 
-        if (productImageUri.startsWith("content://com.android.providers.media.documents/document/image"))
-        {
-            imgProduct.setImageURI(Uri.parse(productImageUri));
-        }
-        else
-        {
-            imgProduct.setImageResource(R.drawable.demo_product);
-        }
+        Uri productImageUri = Uri.parse(cursor.getString(imageColumnIndex));
+
+        final Uri currentProductUri = ContentUris.withAppendedId(ProductEntry.CONTENT_URI, productID);
+
+        Log.d(LOG_TAG, "Generated Uri: " + currentProductUri
+                            + "Product Name: " + "id: " + productID);
+
+        txtName.setText(name);
+        txtPrice.setText(price);
+        txtQty.setText(qty);
+        Glide.with(context).load(productImageUri)
+                .placeholder(R.mipmap.ic_launcher)
+                .error(R.drawable.demo_product)
+                .crossFade()
+                .centerCrop()
+                .into(imgProduct);
 
         btnSale.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -76,14 +86,12 @@ public class ProductCursorAdapter extends CursorAdapter {
                     quantity = quantity - 1;
                     ContentValues values = new ContentValues();
                     values.put(ProductEntry.COLUMN_PRODUCT_QTY, quantity);
-                    Uri currentUri = ContentUris.withAppendedId(ProductEntry.CONTENT_URI, Long.parseLong(productID));
-                    context.getContentResolver().update(currentUri, values, null, null);
+                    context.getContentResolver().update(currentProductUri, values, null, null);
+                    context.getContentResolver().notifyChange(currentProductUri, null);
                 }
             }
         });
 
-        txtName.setText(name);
-        txtPrice.setText(price);
-        txtQty.setText(qty);
+
     }
 }

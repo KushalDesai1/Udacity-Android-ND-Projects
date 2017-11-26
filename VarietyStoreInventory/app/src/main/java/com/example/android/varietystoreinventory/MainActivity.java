@@ -77,8 +77,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         values.put(ProductEntry.COLUMN_PRODUCT_QTY, 10);
         values.put(ProductEntry.COLUMN_PRODUCT_DEALER, "Bonds");
         values.put(ProductEntry.COLUMN_PRODUCT_DEALER_EMAIL, "bonds@gmail.com");
-        values.put(ProductEntry.COLUMN_PRODUCT_IMAGE, String.valueOf(getDrawableResourceUri(R.drawable.demo_product)));
-        values.put(ProductEntry.COLUMN_PRODUCT_IMAGE_PATH, "Default");
 
         Uri newUri = getContentResolver().insert(ProductEntry.CONTENT_URI, values);
 
@@ -131,6 +129,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 ProductEntry.COLUMN_PRODUCT_NAME,
                 ProductEntry.COLUMN_PRODUCT_PRICE,
                 ProductEntry.COLUMN_PRODUCT_QTY,
+                ProductEntry.COLUMN_PRODUCT_DEALER,
+                ProductEntry.COLUMN_PRODUCT_DEALER_EMAIL,
                 ProductEntry.COLUMN_PRODUCT_IMAGE
         };
 
